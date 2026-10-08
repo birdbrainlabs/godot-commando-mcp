@@ -18,8 +18,8 @@ With both running you can say "add a Sprite2D under Player, point it at
 editor you already have open. No file-watching, no restarts, no copy-pasting
 scripts.
 
-Built by one person to speed up their own small games. It is used daily on
-macOS with Godot 4.4 and Claude Code; other platforms should work but are not
+Built by one person to speed up their own small games. It is developed on
+macOS with Godot 4.7 and Claude Code; other platforms should work but are not
 tested.
 
 ## Tools
