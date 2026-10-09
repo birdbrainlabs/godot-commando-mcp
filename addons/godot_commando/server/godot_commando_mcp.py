@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""Command Center — Godot MCP server.
+"""Godot Commando — MCP server.
 
-Exposes the Command Center Godot bridge as MCP tools, so any MCP client
+Exposes the Godot Commando editor plugin as MCP tools, so any MCP client
 (Claude Desktop, Claude Code, Cursor, ...) can inspect and edit the scene
 that's open in the Godot editor.
 
-Requires the Command Center Bridge plugin enabled in a running Godot editor
+Requires the Godot Commando plugin enabled in a running Godot editor
 (it listens on ws://127.0.0.1:26470).
 
-Run standalone for a smoke test:  python godot_mcp_server.py --selftest
+Run standalone for a smoke test:  python godot_commando_mcp.py --selftest
 Normally launched by the MCP client via the config in the README.
 """
 
@@ -24,9 +24,9 @@ try:
 except ImportError:
     sys.exit("Missing dependency: websocket-client")
 
-GODOT_WS_URL = os.environ.get("COMMAND_CENTER_GODOT_WS", "ws://127.0.0.1:26470")
+GODOT_WS_URL = os.environ.get("GODOT_COMMANDO_WS", "ws://127.0.0.1:26470")
 
-mcp = FastMCP("command-center-godot")
+mcp = FastMCP("godot-commando")
 
 
 def bridge(payload: dict) -> dict:
@@ -37,7 +37,7 @@ def bridge(payload: dict) -> dict:
         return {
             "ok": False,
             "error": f"Cannot reach the Godot editor at {GODOT_WS_URL} ({e}). "
-            "Make sure the editor is open and the Command Center Bridge plugin is enabled.",
+            "Make sure the editor is open and the Godot Commando plugin is enabled.",
         }
     try:
         ws.send(json.dumps(payload))

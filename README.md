@@ -1,14 +1,14 @@
-# Command Center for Godot
+# Godot Commando
 
 Let an AI assistant work inside your open Godot editor.
 
-Command Center is two small pieces:
+Godot Commando is two small pieces:
 
-1. **A Godot editor plugin** (`addons/command_center/`) that listens on a local
+1. **A Godot editor plugin** (`addons/godot_commando/`) that listens on a local
    WebSocket (`ws://127.0.0.1:26470`) and runs JSON commands live in the editor:
    read the scene tree, add and remove nodes, set properties, write and check
    scripts, run the scene, take a screenshot of the viewport.
-2. **An MCP server** (`addons/command_center/server/godot_mcp_server.py`) that
+2. **An MCP server** (`addons/godot_commando/server/godot_commando_mcp.py`) that
    exposes those commands as tools for any MCP client: Claude Code, Claude
    Desktop, Cursor, or anything else that speaks the
    [Model Context Protocol](https://modelcontextprotocol.io).
@@ -48,10 +48,10 @@ what it just did instead of guessing.
 
 ### 1. The Godot plugin
 
-Copy `addons/command_center/` into your project's `addons/` folder, then in
+Copy `addons/godot_commando/` into your project's `addons/` folder, then in
 Godot open **Project → Project Settings → Plugins** and enable
-**Command Center Bridge**. The Output panel prints
-`Command Center bridge listening on ws://127.0.0.1:26470`.
+**Godot Commando**. The Output panel prints
+`Godot Commando listening on ws://127.0.0.1:26470`.
 
 Requires Godot 4.2 or newer.
 
@@ -64,7 +64,7 @@ pip install -r requirements.txt
 Smoke test with the editor open:
 
 ```bash
-python3 addons/command_center/server/godot_mcp_server.py --selftest
+python3 addons/godot_commando/server/godot_commando_mcp.py --selftest
 ```
 
 ### 3. Point your MCP client at it
@@ -72,7 +72,7 @@ python3 addons/command_center/server/godot_mcp_server.py --selftest
 Claude Code, from inside your Godot project folder:
 
 ```bash
-claude mcp add godot -- python3 /path/to/godot-command-center/addons/command_center/server/godot_mcp_server.py
+claude mcp add godot -- python3 /path/to/godot-commando-mcp/addons/godot_commando/server/godot_commando_mcp.py
 ```
 
 Claude Desktop or any client that takes a JSON config:
@@ -82,13 +82,13 @@ Claude Desktop or any client that takes a JSON config:
   "mcpServers": {
     "godot": {
       "command": "python3",
-      "args": ["/path/to/godot-command-center/addons/command_center/server/godot_mcp_server.py"]
+      "args": ["/path/to/godot-commando-mcp/addons/godot_commando/server/godot_commando_mcp.py"]
     }
   }
 }
 ```
 
-Set `COMMAND_CENTER_GODOT_WS` if you changed the port.
+Set `GODOT_COMMANDO_WS` if you changed the port.
 
 ## How it works
 

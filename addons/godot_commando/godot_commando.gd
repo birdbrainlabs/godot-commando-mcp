@@ -1,10 +1,10 @@
 @tool
 extends EditorPlugin
-## Command Center Bridge — v0.2
+## Godot Commando — v0.2
 ##
 ## Listens on ws://127.0.0.1:26470 for JSON commands and executes them live in
-## the editor. Requires Godot 4.2+. Talk to it via the Command Center hub, the
-## bundled MCP server, or anything that can send JSON over a WebSocket.
+## the editor. Requires Godot 4.2+. Talk to it via the bundled MCP server, or
+## anything else that can send JSON over a WebSocket.
 ##
 ## Every reply is JSON: {"ok": true, ...} or {"ok": false, "error": "..."}
 
@@ -17,9 +17,9 @@ var _peers: Array[WebSocketPeer] = []
 func _enter_tree() -> void:
 	var err := _server.listen(PORT, "127.0.0.1")
 	if err != OK:
-		push_error("Command Center: cannot listen on 127.0.0.1:%d (error %d). Is another instance running?" % [PORT, err])
+		push_error("Godot Commando: cannot listen on 127.0.0.1:%d (error %d). Is another instance running?" % [PORT, err])
 	else:
-		print("Command Center bridge listening on ws://127.0.0.1:%d" % PORT)
+		print("Godot Commando listening on ws://127.0.0.1:%d" % PORT)
 
 
 func _exit_tree() -> void:
