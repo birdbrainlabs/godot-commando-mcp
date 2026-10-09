@@ -530,5 +530,5 @@ func _ok(payload: Dictionary) -> String:
 
 
 func _err(message: String) -> String:
-	push_warning("Command Center: %s" % message)
+	push_warning("Godot Commando: %s" % message)
 	return JSON.stringify({"ok": false, "error": message})
