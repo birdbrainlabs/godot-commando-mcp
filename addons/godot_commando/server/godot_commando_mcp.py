@@ -193,6 +193,33 @@ def update_sprite_frames(texture: str, resource_path: str,
 
 
 @mcp.tool()
+def get_editor_setting(name: str) -> str:
+    """Read an Editor Settings value (Editor > Editor Settings, not Project
+    Settings), e.g. 'run/window_placement/game_embed_mode'. Returns the value,
+    its type, and the named options when the setting is a dropdown."""
+    return _s(bridge({"action": "get_editor_setting", "name": name}))
+
+
+@mcp.tool()
+def set_editor_setting(name: str, value) -> str:
+    """Change an Editor Settings value. This changes the user's editor for
+    every project, and it persists. Values are coerced to the setting's type;
+    dropdown settings also take an option name, e.g.
+    set_editor_setting('run/window_placement/game_embed_mode', 'embed') so
+    Play stays inside the editor ('disabled', 'floating', or the int also
+    work). Returns old_value and the new value."""
+    return _s(bridge({"action": "set_editor_setting", "name": name, "value": value}))
+
+
+@mcp.tool()
+def list_editor_settings(prefix: str = "") -> str:
+    """List Editor Settings keys that start with prefix, e.g.
+    'run/window_placement/'. Use this to find the exact name for
+    get_editor_setting / set_editor_setting."""
+    return _s(bridge({"action": "list_editor_settings", "prefix": prefix}))
+
+
+@mcp.tool()
 def capture_viewport(kind: str = "2d") -> Image:
     """Capture a screenshot of the editor viewport ('2d' or '3d') and return
     it as an image. Use this to SEE the scene — verify a change looked right,

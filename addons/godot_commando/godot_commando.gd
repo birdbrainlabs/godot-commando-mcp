@@ -108,6 +108,13 @@ func _handle(raw: String) -> String:
 		"stop_scene":
 			EditorInterface.stop_playing_scene()
 			return _ok({"stopped": true})
+		# --- editor settings -----------------------------------------
+		"get_editor_setting":
+			return _get_editor_setting(data)
+		"set_editor_setting":
+			return _set_editor_setting(data)
+		"list_editor_settings":
+			return _list_editor_settings(data)
 		# --- vision --------------------------------------------------
 		"capture_viewport":
 			return _capture_viewport(data)
@@ -353,7 +360,11 @@ func _coerce(value: Variant, current: Variant) -> Variant:
 
 	# Some relay layers stringify structured arguments ("[150, 250]" instead of
 	# [150, 250]). If the target property is NOT a string, unwrap first.
-	if vt == TYPE_STRING and t != TYPE_STRING and t != TYPE_STRING_NAME:
+	if vt == TYPE_STRING and t != TYPE_STRING and t != TYPE_STRING_NAME \
+			and not value.begins_with("res://") and not value.begins_with("uid://") \
+			and not value.begins_with("#"):
+		# Resource paths and colours are plain strings: parsing them as JSON
+		# only logs a red "Parse JSON failed" error in the editor.
 		var unwrapped: Variant = JSON.parse_string(value)
 		if unwrapped == null:
 			unwrapped = str_to_var(value)
@@ -494,6 +505,113 @@ func _read_file(data: Dictionary) -> String:
 	var content := f.get_as_text()
 	f.close()
 	return _ok({"path": path, "content": content})
+
+
+# ------------------------------------------------------------------ editor settings
+# These change the user's editor (global, not per-project), so they persist
+# across projects and restarts. EditorSettings saves itself; there is no
+# public save() to call.
+
+func _get_editor_setting(data: Dictionary) -> String:
+	var setting: String = data.get("name", "")
+	if setting.is_empty():
+		return _err("get_editor_setting requires 'name'")
+	var es := EditorInterface.get_editor_settings()
+	if not es.has_setting(setting):
+		return _err("no editor setting '%s' (try list_editor_settings with a prefix)" % setting)
+	var value: Variant = es.get_setting(setting)
+	var reply := {
+		"name": setting,
+		"value": var_to_str(value),
+		"type": type_string(typeof(value)),
+	}
+	var options := _setting_enum_options(es, setting)
+	if not options.is_empty():
+		reply["options"] = options
+	return _ok(reply)
+
+
+func _set_editor_setting(data: Dictionary) -> String:
+	var setting: String = data.get("name", "")
+	if setting.is_empty():
+		return _err("set_editor_setting requires 'name'")
+	if not data.has("value"):
+		return _err("set_editor_setting requires 'value'")
+	var es := EditorInterface.get_editor_settings()
+	if not es.has_setting(setting):
+		return _err("no editor setting '%s' (try list_editor_settings with a prefix)" % setting)
+
+	var raw: Variant = data.get("value")
+	var before: Variant = es.get_setting(setting)
+	var value: Variant = raw
+	var options := _setting_enum_options(es, setting)
+	# Enum settings accept an option name ("embed") as well as the int.
+	if typeof(raw) == TYPE_STRING and not options.is_empty() and not String(raw).is_valid_int():
+		var matched := _match_enum_option(options, raw)
+		if matched.is_empty():
+			return _err("'%s' is not an option for %s; options: %s" % [raw, setting, ", ".join(options.keys())])
+		if matched.size() > 1:
+			return _err("'%s' is ambiguous for %s; matches: %s" % [raw, setting, ", ".join(matched)])
+		value = options[matched[0]]
+	value = _coerce(value, before)
+	if typeof(before) != TYPE_NIL and typeof(value) != typeof(before):
+		return _err("%s expects %s, got %s" % [setting, type_string(typeof(before)), type_string(typeof(value))])
+
+	es.set_setting(setting, value)
+	es.mark_setting_changed(setting)
+	var after: Variant = es.get_setting(setting)
+	return _ok({
+		"name": setting,
+		"old_value": var_to_str(before),
+		"value": var_to_str(after),
+		"type": type_string(typeof(after)),
+	})
+
+
+func _list_editor_settings(data: Dictionary) -> String:
+	var prefix: String = data.get("prefix", "")
+	var es := EditorInterface.get_editor_settings()
+	var names: Array = []
+	for p in es.get_property_list():
+		var n := String(p.get("name", ""))
+		if n.contains("/") and n.begins_with(prefix) and es.has_setting(n):
+			names.append(n)
+	names.sort()
+	return _ok({"prefix": prefix, "settings": names})
+
+
+## Option name -> value for an enum-hinted setting ("Embed Game" -> 1), or {}.
+## Hint strings are "A,B,C" (values 0,1,2) or "A:-1,B:0,C:2".
+func _setting_enum_options(es: EditorSettings, setting: String) -> Dictionary:
+	var options := {}
+	for p in es.get_property_list():
+		if p.get("name", "") != setting:
+			continue
+		if p.get("hint", PROPERTY_HINT_NONE) != PROPERTY_HINT_ENUM:
+			break
+		var next_value := 0
+		for item in String(p.get("hint_string", "")).split(","):
+			var parts := item.rsplit(":", true, 1)
+			if parts.size() == 2 and parts[1].is_valid_int():
+				next_value = int(parts[1])
+			options[parts[0]] = next_value
+			next_value += 1
+		break
+	return options
+
+
+## Exact name match first (case-insensitive), then every option whose name
+## contains the given word: "embed" -> "Embed Game".
+func _match_enum_option(options: Dictionary, wanted: String) -> Array:
+	var needle := wanted.strip_edges().to_lower()
+	for option in options.keys():
+		if String(option).to_lower() == needle:
+			return [option]
+	var hits: Array = []
+	for option in options.keys():
+		if String(option).to_lower().contains(needle):
+			hits.append(option)
+	return hits
 
 
 # ------------------------------------------------------------------ vision

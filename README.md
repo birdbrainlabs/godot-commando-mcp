@@ -40,9 +40,16 @@ tested.
 | `rescan_filesystem` / `reimport_file` | Pick up assets changed on disk |
 | `update_sprite_frames` | Build a SpriteFrames resource from a spritesheet |
 | `capture_viewport` | Screenshot the 2D or 3D editor viewport, returned as an image |
+| `get_editor_setting` / `set_editor_setting` | Read or change an Editor Settings value |
+| `list_editor_settings` | Find Editor Settings keys by prefix |
 
 The screenshot tool is the one that matters most: it lets the assistant see
 what it just did instead of guessing.
+
+The editor-settings tools change the editor itself, not your project. For
+example, `set_editor_setting run/window_placement/game_embed_mode embed` so
+Play stays inside the editor instead of opening a separate window. Dropdown
+settings take the option name (`embed`, `floating`, `disabled`) or its number.
 
 ## Install
 
@@ -109,6 +116,8 @@ Godot side means the Python half never needs to know anything about Godot.
   like having the editor open.
 - `write_script` and `set_property` change files in your project. Keep the
   project in version control.
+- `set_editor_setting` changes your editor for every project, and the change
+  sticks. Check it with `get_editor_setting` first if you want to put it back.
 
 ## License
 
