@@ -2,6 +2,10 @@
 
 Let an AI assistant work inside your open Godot editor.
 
+https://github.com/user-attachments/assets/30228697-3971-4886-9816-34b670a7dab9
+
+
+
 Godot Commando is two small pieces:
 
 1. **A Godot editor plugin** (`addons/godot_commando/`) that listens on a local
